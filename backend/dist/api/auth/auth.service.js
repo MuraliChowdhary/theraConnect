@@ -27,17 +27,34 @@ const jwt_1 = require("../../utils/jwt");
 const prisma = new client_1.PrismaClient();
 const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name, phone } = input;
-    const existingUser = yield prisma.user.findUnique({ where: { email } });
-    if (existingUser)
+    const existingUser = yield prisma.user.findUnique({
+        where: { email },
+    });
+    if (existingUser) {
         throw new Error('User with this email already exists');
+    }
+    console.time('hashPassword');
     const hashedPassword = yield (0, password_1.hashPassword)(password);
-    return prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        const user = yield tx.user.create({
-            data: { email, password: hashedPassword, role: client_1.Role.PARENT },
-        });
-        yield tx.parentProfile.create({ data: { userId: user.id, name, phone } });
-        return user;
-    }));
+    console.timeEnd('hashPassword');
+    console.time('createUser');
+    const user = yield prisma.user.create({
+        data: {
+            email,
+            password: hashedPassword,
+            role: client_1.Role.PARENT,
+            parentProfile: {
+                create: {
+                    name,
+                    phone,
+                },
+            },
+        },
+        include: {
+            parentProfile: true,
+        },
+    });
+    console.timeEnd('createUser');
+    return user;
 });
 exports.registerParent = registerParent;
 const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {

@@ -85,25 +85,23 @@ exports.generateAndGetAvailableSlots = generateAndGetAvailableSlots;
  * Books a time slot for a child in a concurrency-safe transaction.
  */
 const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        // Step 1: Lock the TimeSlot row to prevent double booking.
-        // findFirstOrThrow ensures that if the slot is already booked or doesn't exist, the transaction fails.
-        const slot = yield tx.timeSlot.findFirstOrThrow({
+    let slot;
+    let child;
+    let newBooking;
+    yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        slot = yield tx.timeSlot.findFirstOrThrow({
             where: { id: timeSlotId, isBooked: false },
             include: { therapist: { include: { user: true } } },
         });
-        // Step 2: Mark the slot as booked
         yield tx.timeSlot.update({
             where: { id: timeSlotId },
             data: { isBooked: true },
         });
-        // Step 3: Verify the child belongs to the parent
-        const child = yield tx.child.findFirstOrThrow({
+        child = yield tx.child.findFirstOrThrow({
             where: { id: childId, parentId },
             include: { parent: { include: { user: true } } },
         });
-        // Step 4: Create the booking record
-        const newBooking = yield tx.booking.create({
+        newBooking = yield tx.booking.create({
             data: {
                 parentId,
                 childId,
@@ -111,20 +109,18 @@ const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, vo
                 timeSlotId: slot.id,
             },
         });
-        // Step 5 & 6 (optional but good practice): Create Payment and Permissions
-        // ... (logic for payment and data access permission creation would go here)
-        // After transaction succeeds, send notifications
-        yield (0, notification_service_1.sendNotification)({
-            userId: slot.therapist.user.id,
-            type: 'BOOKING_CONFIRMED',
-            message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
-        });
-        yield (0, notification_service_1.sendNotification)({
-            userId: child.parent.user.id,
-            type: 'BOOKING_CONFIRMED',
-            message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
-        });
-        return newBooking;
     }));
+    // Notifications outside transaction
+    yield (0, notification_service_1.sendNotification)({
+        userId: slot.therapist.user.id,
+        type: 'BOOKING_CONFIRMED',
+        message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+    });
+    yield (0, notification_service_1.sendNotification)({
+        userId: child.parent.user.id,
+        type: 'BOOKING_CONFIRMED',
+        message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+    });
+    return newBooking;
 });
 exports.bookSlot = bookSlot;

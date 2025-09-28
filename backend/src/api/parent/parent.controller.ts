@@ -30,6 +30,8 @@ export const getMyChildrenHandler = async (req: Request, res: Response) => {
 
 export const addChildHandler = async (req: Request, res: Response) => {
   try {
+     
+    
     const parentId = await getParentId(req.user!.userId);
     const child = await parentService.addChild(parentId, req.body);
     res.status(201).json(child);

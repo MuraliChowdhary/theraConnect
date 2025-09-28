@@ -18,17 +18,36 @@ type LoginInput = z.infer<typeof loginSchema>['body'];
 
 export const registerParent = async (input: RegisterParentInput) => {
   const { email, password, name, phone } = input;
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) throw new Error('User with this email already exists');
-
-  const hashedPassword = await hashPassword(password);
-  return prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: { email, password: hashedPassword, role: Role.PARENT },
-    });
-    await tx.parentProfile.create({ data: { userId: user.id, name, phone } });
-    return user;
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
   });
+
+  if (existingUser) {
+    throw new Error('User with this email already exists');
+  }
+  console.time('hashPassword');
+  const hashedPassword = await hashPassword(password);
+  console.timeEnd('hashPassword');
+  console.time('createUser');
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      role: Role.PARENT,
+      parentProfile: {
+        create: {
+          name,
+          phone,
+        },
+      },
+    },
+    include: {
+      parentProfile: true,
+    },
+  });
+  console.timeEnd('createUser');
+
+  return user;
 };
 
 export const registerTherapist = async (input: RegisterTherapistInput) => {

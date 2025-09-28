@@ -86,28 +86,27 @@ export const generateAndGetAvailableSlots = async (therapistId: string, date: st
  * Books a time slot for a child in a concurrency-safe transaction.
  */
 export const bookSlot = async (parentId: string, childId: string, timeSlotId: string) => {
-  return prisma.$transaction(async (tx) => {
-    // Step 1: Lock the TimeSlot row to prevent double booking.
-    // findFirstOrThrow ensures that if the slot is already booked or doesn't exist, the transaction fails.
-    const slot = await tx.timeSlot.findFirstOrThrow({
+  let slot: any;
+  let child: any;
+  let newBooking: any;
+
+  await prisma.$transaction(async (tx) => {
+    slot = await tx.timeSlot.findFirstOrThrow({
       where: { id: timeSlotId, isBooked: false },
       include: { therapist: { include: { user: true } } },
     });
 
-    // Step 2: Mark the slot as booked
     await tx.timeSlot.update({
       where: { id: timeSlotId },
       data: { isBooked: true },
     });
 
-    // Step 3: Verify the child belongs to the parent
-    const child = await tx.child.findFirstOrThrow({
+    child = await tx.child.findFirstOrThrow({
       where: { id: childId, parentId },
       include: { parent: { include: { user: true } } },
     });
 
-    // Step 4: Create the booking record
-    const newBooking = await tx.booking.create({
+    newBooking = await tx.booking.create({
       data: {
         parentId,
         childId,
@@ -115,22 +114,20 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
         timeSlotId: slot.id,
       },
     });
-    
-    // Step 5 & 6 (optional but good practice): Create Payment and Permissions
-    // ... (logic for payment and data access permission creation would go here)
-
-    // After transaction succeeds, send notifications
-    await sendNotification({
-      userId: slot.therapist.user.id,
-      type: 'BOOKING_CONFIRMED',
-      message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
-    });
-    await sendNotification({
-      userId: child.parent.user.id,
-      type: 'BOOKING_CONFIRMED',
-      message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
-    });
-
-    return newBooking;
   });
+
+  // Notifications outside transaction
+  await sendNotification({
+    userId: slot.therapist.user.id,
+    type: 'BOOKING_CONFIRMED',
+    message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+  });
+  await sendNotification({
+    userId: child.parent.user.id,
+    type: 'BOOKING_CONFIRMED',
+    message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+  });
+
+  return newBooking;
 };
+
