@@ -20,6 +20,7 @@ export const updateTherapistStatus = async (therapistId: string, status: Therapi
       userId: updatedTherapist.userId,
       type: 'THERAPIST_ACCOUNT_APPROVED',
       message: 'Congratulations! Your profile has been approved by the admin.',
+      sendAt:new Date()
     });
   }
 

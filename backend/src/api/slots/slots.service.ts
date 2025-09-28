@@ -5,12 +5,12 @@ const prisma = new PrismaClient();
 
 /**
  * Checks if a given time falls within any of the therapist's breaks.
- * @param time - The Date object to check.
- * @param breaks - An array of therapist breaks.
- * @param date - The target date string 'YYYY-MM-DD' to construct break times.
- * @returns {boolean} - True if the time is within a break, false otherwise.
  */
-function isTimeInBreak(time: Date, breaks: { startTime: string, endTime: string }[], date: string): boolean {
+function isTimeInBreak(
+  time: Date,
+  breaks: { startTime: string; endTime: string }[],
+  date: string
+): boolean {
   for (const breakItem of breaks) {
     const breakStart = new Date(`${date}T${breakItem.startTime}:00.000Z`);
     const breakEnd = new Date(`${date}T${breakItem.endTime}:00.000Z`);
@@ -22,29 +22,26 @@ function isTimeInBreak(time: Date, breaks: { startTime: string, endTime: string 
 }
 
 /**
- * The core function to generate slots for a day if they don't exist,
- * and then return the available ones.
+ * Generate slots for a day if not exists, then return available ones.
  */
-export const generateAndGetAvailableSlots = async (therapistId: string, date: string) => {
+export const generateAndGetAvailableSlots = async (
+  therapistId: string,
+  date: string
+) => {
   const therapist = await prisma.therapistProfile.findUnique({
     where: { id: therapistId },
     include: { breaks: true },
   });
-  
 
-  if (!therapist) {
-    throw new Error('Therapist not found');
-  }
+  if (!therapist) throw new Error('Therapist not found');
 
   const dayStart = new Date(`${date}T00:00:00.000Z`);
   const dayEnd = new Date(`${date}T23:59:59.999Z`);
 
-  // 1. Check if slots already exist for this day
   const existingSlotsCount = await prisma.timeSlot.count({
     where: { therapistId, startTime: { gte: dayStart, lte: dayEnd } },
   });
 
-  // 2. If no slots exist, generate them
   if (existingSlotsCount === 0) {
     const slotsToCreate = [];
     let currentSlotTime = new Date(`${date}T${therapist.scheduleStartTime}:00.000Z`);
@@ -53,7 +50,6 @@ export const generateAndGetAvailableSlots = async (therapistId: string, date: st
     while (slotsToCreate.length < maxSlotsPerDay) {
       const slotEndTime = new Date(currentSlotTime.getTime() + slotDurationInMinutes * 60000);
 
-      // Skip slot if it starts within a break
       if (!isTimeInBreak(currentSlotTime, breaks, date)) {
         slotsToCreate.push({
           therapistId,
@@ -61,7 +57,7 @@ export const generateAndGetAvailableSlots = async (therapistId: string, date: st
           endTime: slotEndTime,
         });
       }
-      // Move to the start of the next potential slot
+
       currentSlotTime = slotEndTime;
     }
 
@@ -70,7 +66,6 @@ export const generateAndGetAvailableSlots = async (therapistId: string, date: st
     }
   }
 
-  // 3. Fetch and return all *available* slots for the day
   return prisma.timeSlot.findMany({
     where: {
       therapistId,
@@ -81,9 +76,8 @@ export const generateAndGetAvailableSlots = async (therapistId: string, date: st
   });
 };
 
-
 /**
- * Books a time slot for a child in a concurrency-safe transaction.
+ * Book a slot for a child and queue notifications asynchronously.
  */
 export const bookSlot = async (parentId: string, childId: string, timeSlotId: string) => {
   let slot: any;
@@ -116,18 +110,25 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
     });
   });
 
-  // Notifications outside transaction
-  await sendNotification({
-    userId: slot.therapist.user.id,
-    type: 'BOOKING_CONFIRMED',
-    message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
-  });
-  await sendNotification({
-    userId: child.parent.user.id,
-    type: 'BOOKING_CONFIRMED',
-    message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
-  });
+  // Queue notifications outside transaction (non-blocking)
+  const notificationsToQueue = [
+    {
+      userId: slot.therapist.user.id,
+      type: 'BOOKING_CONFIRMED',
+      channel: 'EMAIL', // Use NotificationChannel properly
+      message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
+      sendAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
+    {
+      userId: child.parent.user.id,
+      type: 'BOOKING_CONFIRMED',
+      channel: 'EMAIL',
+      message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
+      sendAt: new Date(Date.now() + 5 * 60 * 1000),
+    },
+  ];
+
+  await Promise.all(notificationsToQueue.map((notif) => sendNotification(notif)));
 
   return newBooking;
 };
-

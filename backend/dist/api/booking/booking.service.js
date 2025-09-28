@@ -75,12 +75,14 @@ const createBooking = (parentId, input) => __awaiter(void 0, void 0, void 0, fun
     yield (0, notification_service_1.sendNotification)({
         userId: timeSlot.therapist.userId,
         type: 'BOOKING_CONFIRMED',
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`
+        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt: new Date(Date.now() + 5 * 60 * 1000)
     });
     yield (0, notification_service_1.sendNotification)({
         userId: parent.userId,
         type: 'BOOKING_CONFIRMED',
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`
+        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt: new Date(Date.now() + 5 * 60 * 1000)
     });
     return booking;
 });

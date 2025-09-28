@@ -49,6 +49,7 @@ const prisma = new client_1.PrismaClient();
 const getAvailableSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { therapistId, date } = req.query;
+        console.log(req.query);
         const slots = yield bookingService.getAvailableSlots(therapistId, date);
         res.status(200).json(slots);
     }

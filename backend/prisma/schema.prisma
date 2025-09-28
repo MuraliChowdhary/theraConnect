@@ -50,6 +50,11 @@ enum NotificationType {
   THERAPIST_ACCOUNT_APPROVED
 }
 
+enum NotificationChannel {
+  EMAIL
+  PUSH 
+}
+
 // CORE MODELS
 model User {
   id        String   @id @default(cuid())
@@ -238,18 +243,29 @@ model Testimonial {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
+  id        String             @id @default(cuid())
   message   String
-  isRead    Boolean          @default(false)
+  isRead    Boolean            @default(false)
   type      NotificationType
-  createdAt DateTime         @default(now())
 
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  user      User               @relation(fields: [userId], references: [id])
+  userId    String
 
-  @@index([userId])
+  channel   NotificationChannel   
+  status    NotificationStatus   
+
+  sendAt    DateTime             
+  createdAt DateTime            @default(now())
+
+  @@index([userId, status, sendAt])
 }
 
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
 model AuditLog {
   id        String   @id @default(cuid())
   action    String

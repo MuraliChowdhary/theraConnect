@@ -13,11 +13,8 @@ const router = Router();
 router.use(authenticate, authorize([Role.THERAPIST]));
 
 router.get('/me/profile', getMyProfileHandler);
-router.post(
-  '/me/slots',
-  validate({ body: createTimeSlotsSchema.shape.body }), // <-- just the schema
-  createTimeSlotsHandler
-)
+router.post('/me/slots',validate({ body: createTimeSlotsSchema.shape.body }),createTimeSlotsHandler);
+
 router.post('/me/leaves', validate({body : requestLeaveSchema.shape.body}), requestLeaveHandler);
 
 export default router;

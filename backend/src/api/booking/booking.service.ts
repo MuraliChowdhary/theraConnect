@@ -76,12 +76,14 @@ export const createBooking = async (parentId: string, input: CreateBookingInput)
     await sendNotification({
         userId: timeSlot.therapist.userId,
         type: 'BOOKING_CONFIRMED',
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`
+        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt:new Date(Date.now() + 5 * 60 * 1000)
     });
     await sendNotification({
         userId: parent!.userId,
         type: 'BOOKING_CONFIRMED',
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`
+        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+        sendAt:new Date(Date.now() + 5 * 60 * 1000)
     });
 
     return booking;

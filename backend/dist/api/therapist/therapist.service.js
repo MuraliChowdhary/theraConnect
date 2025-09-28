@@ -58,6 +58,7 @@ const requestLeave = (therapistId, input) => __awaiter(void 0, void 0, void 0, f
             userId: booking.parent.userId,
             type: 'BOOKING_CANCELLED',
             message: `Your session for ${booking.timeSlot.startTime.toLocaleDateString()} has been cancelled as the therapist is unavailable.`,
+            sendAt: new Date()
         });
     }
     return { message: 'Leave approved and affected bookings have been cancelled.' };

@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export const getAvailableSlotsHandler = async (req: Request, res: Response) => {
     try {
         const { therapistId, date } = req.query as { therapistId: string; date: string };
+        console.log(req.query)
         const slots = await bookingService.getAvailableSlots(therapistId, date);
         res.status(200).json(slots);
     } catch (error: any) {
