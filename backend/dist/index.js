@@ -31,6 +31,9 @@ const PORT = process.env.PORT || 3000;
 // Global Middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+app.get('/health', (req, res) => {
+    res.status(200).send('Theraconnect API is healthy');
+});
 // API Routes
 app.use('/api/v1/auth', auth_routes_js_1.default);
 app.use('/api/v1/admin', admin_routes_js_1.default);
@@ -38,7 +41,6 @@ app.use('/api/v1/parents', parent_routes_js_1.default);
 app.use('/api/v1/therapists', therapist_routes_js_1.default);
 app.use('/api/v1/bookings', booking_routes_js_1.default);
 app.use('/api/v1/slots', slots_routes_js_1.default);
-// app.use('/api/v1/feedback',feedbackRoutes);
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$connect();

@@ -14,6 +14,8 @@ export const getAvailableSlotsHandler = async (req: Request, res: Response) => {
     }
 };
 
+//email phone name child-> illness  
+
 export const createBookingHandler = async (req: Request, res: Response) => {
     try {
         const parentProfile = await prisma.parentProfile.findUnique({ where: { userId: req.user!.userId }});

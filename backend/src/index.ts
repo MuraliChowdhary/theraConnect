@@ -32,7 +32,7 @@ app.use('/api/v1/parents', parentRoutes);
 app.use('/api/v1/therapists', therapistRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/slots', slotRoutes);
-// app.use('/api/v1/feedback',feedbackRoutes);
+
 
 
 const startServer = async () => {
