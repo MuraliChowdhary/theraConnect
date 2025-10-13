@@ -30,10 +30,9 @@ const sendemail = (email, message) => __awaiter(void 0, void 0, void 0, function
         yield transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Your Booking Slot Reminder",
+            subject: "TheraConnect: Important Notification",
             text: `
-        You received a new booking reminder:
-        ${message}
+         ${message}
       `
         });
         return { success: true };

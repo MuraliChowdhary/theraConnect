@@ -8,17 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.comparePassword = exports.hashPassword = void 0;
-const argon2_1 = __importDefault(require("argon2"));
+const bcryptjs_1 = require("bcryptjs");
 const hashPassword = (password) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield argon2_1.default.hash(password);
+    const hashedPassword = yield (0, bcryptjs_1.hash)(password, 12);
+    return hashedPassword;
 });
 exports.hashPassword = hashPassword;
 const comparePassword = (password, hash) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield argon2_1.default.verify(hash, password);
+    return yield (0, bcryptjs_1.compare)(password, hash);
 });
 exports.comparePassword = comparePassword;

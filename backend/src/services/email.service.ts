@@ -20,10 +20,9 @@ export const sendemail = async (email: string, message: string) => {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,   
-      subject: "Your Booking Slot Reminder",
+      subject: "TheraConnect: Important Notification",
       text: `
-        You received a new booking reminder:
-        ${message}
+         ${message}
       `
     });
 

@@ -3,7 +3,7 @@ import * as slotsService from './slots.service';
 import { PrismaClient } from '@prisma/client';
 import { getAvailableSlotsSchema } from './slots.validation';
 import z from 'zod';
-const prisma = new PrismaClient();
+import { prisma } from '../../utils/prisma';
 
 export type getAvailableSlotsSchemaInput = z.infer<typeof getAvailableSlotsSchema>['body'];
 
@@ -24,7 +24,7 @@ export const bookSlotHandler = async (req: Request, res: Response) => {
     const parentProfile = await prisma.parentProfile.findUniqueOrThrow({
       where: { userId: req.user!.userId },
     });
-    
+
     const booking = await slotsService.bookSlot(parentProfile.id, childId, timeSlotId);
     res.status(201).json({ message: 'Booking successful!', booking });
   } catch (error: any) {

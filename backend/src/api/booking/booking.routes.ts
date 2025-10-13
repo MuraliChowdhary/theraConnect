@@ -6,11 +6,18 @@ import {
   getAvailableSlotsHandler,
   createBookingHandler,
   getMyBookingsHandler,
+  markSessionCompletedHandler,
 } from './booking.controller';
+import * as zoomController from './zoom.controller';
+
 import { getSlotsQuerySchema, createBookingSchema } from './booking.validation';
 
 const router = Router();
 router.use(authenticate);
+
+router.get('/test', (req, res) => {
+  res.json({ message: 'booking API is working', timestamp: new Date().toISOString() })
+})
 
 // A parent can get slots for a therapist
 router.get('/slots', authorize([Role.PARENT]), validate({query:getSlotsQuerySchema.shape.query}), getAvailableSlotsHandler);
@@ -20,5 +27,36 @@ router.post('/', authorize([Role.PARENT]), validate({body :createBookingSchema.s
 
 // Both parents and therapists can view their own bookings
 router.get('/me', authorize([Role.PARENT, Role.THERAPIST]), getMyBookingsHandler);
+
+
+// Zoom meeting integration
+// Therapist creates a Zoom meeting for a booking (stores meetingId/password)
+router.post(
+  '/:bookingId/zoom/create',
+  authorize([Role.THERAPIST]),
+  zoomController.createMeetingForBooking
+);
+
+// Therapist toggles that host has started the session
+router.post(
+  '/:bookingId/zoom/host-started',
+  authorize([Role.THERAPIST]),
+  zoomController.markHostStarted
+);
+
+// Get SDK signature for current user (role derived), blocked if parent and host not started
+router.get(
+  '/:bookingId/zoom/signature',
+  authorize([Role.PARENT, Role.THERAPIST]),
+  zoomController.getSignature
+);
+
+// Mark session as completed (can be called by both parent and therapist)
+router.post(
+  '/:bookingId/complete',
+  authorize([Role.PARENT, Role.THERAPIST]),
+  markSessionCompletedHandler
+);
+
 
 export default router;

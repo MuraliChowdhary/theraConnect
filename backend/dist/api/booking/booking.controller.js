@@ -32,10 +32,53 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = void 0;
+exports.getMyBookingsHandler = exports.createBookingHandler = exports.getAvailableSlotsHandler = exports.markSessionCompletedHandler = void 0;
 const bookingService = __importStar(require("./booking.service"));
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = require("../../utils/prisma");
+const notification_service_1 = require("../../services/notification.service");
+const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { bookingId } = req.params;
+        const updatedBooking = yield bookingService.markSessionCompleted(bookingId);
+        const parentId = yield prisma_1.prisma.booking.findUnique({
+            where: { id: bookingId },
+            select: {
+                parentId: true
+            }
+        });
+        if (!parentId) {
+            res.json("parent not found");
+            return;
+        }
+        const sessionCompletedMessage = `
+                Hello,
+
+                Your recent session has been successfully completed.
+
+                We hope it was helpful and insightful. You can review session details and any recommendations in your TheraConnect account.
+
+                Thank you for trusting us with your wellness journey.
+
+                Best regards,  
+                TheraConnect Team
+                `.trim();
+        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
+            userId: parentId.parentId,
+            message: sessionCompletedMessage,
+            type: 'SESSION_COMPLETED',
+            sendAt: new Date()
+        });
+        res.status(200).json({
+            message: 'Session marked as completed',
+            booking: updatedBooking
+        });
+    }
+    catch (error) {
+        console.error('[booking.markSessionCompleted][ERROR]', error);
+        res.status(400).json({ message: error.message || 'Failed to mark session as completed' });
+    }
+});
+exports.markSessionCompletedHandler = markSessionCompletedHandler;
 const getAvailableSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { therapistId, date } = req.query;
@@ -48,13 +91,102 @@ const getAvailableSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.getAvailableSlotsHandler = getAvailableSlotsHandler;
-//email phone name child-> illness  
 const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const parentProfile = yield prisma.parentProfile.findUnique({ where: { userId: req.user.userId } });
+        const parentProfile = yield prisma_1.prisma.parentProfile.findUnique({ where: { userId: req.user.userId } });
         if (!parentProfile)
             return res.status(404).json({ message: 'Parent profile not found' });
         const booking = yield bookingService.createBooking(parentProfile.id, req.body);
+        const parent = yield prisma_1.prisma.parentProfile.findFirst({
+            where: { id: parentProfile.id },
+            select: {
+                userId: true,
+                name: true
+            },
+        });
+        if (!(parent === null || parent === void 0 ? void 0 : parent.userId)) {
+            return res.status(404).json({
+                message: "Parent does not exist in user profile",
+            });
+        }
+        const findTimeSlot = yield prisma_1.prisma.timeSlot.findUnique({
+            where: {
+                id: req.body.timeSlotId
+            },
+            select: {
+                startTime: true,
+                endTime: true,
+                therapist: {
+                    select: {
+                        userId: true,
+                        name: true
+                    }
+                }
+            }
+        });
+        if (!findTimeSlot) {
+            return res.status(404).json({ message: "TimeSlot not found" });
+        }
+        // // Extract the userId string
+        const userId = parent.userId;
+        const bookingMessage = `
+            Hi ${parent.name || 'there'},
+
+            Your session booking has been successfully confirmed!
+
+            Details:
+            • Booking ID: ${booking.id}
+            • Date & Time: ${findTimeSlot.startTime} - ${findTimeSlot.endTime}
+
+            You can join the session via your TheraConnect dashboard when it's time.
+
+            We look forward to helping you on your wellness journey!
+
+            Warm regards,  
+            The TheraConnect Team
+            `.trim();
+        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
+            userId: userId,
+            message: bookingMessage,
+            type: 'BOOKING_CONFIRMED',
+            sendAt: new Date(),
+        });
+        const therapistBookingMessage = `
+                Hi ${findTimeSlot.therapist.name || 'there'},
+
+                Good news! A parent has booked a session with you.
+
+                Session Details:
+                • Date & Time: ${findTimeSlot.startTime.toLocaleString()} - ${findTimeSlot.endTime.toLocaleString()}
+                • Booking ID: ${booking.id}
+
+                Please make sure to prepare for the session and be ready at the scheduled time.
+
+                Thank you for providing your expertise and support to our clients.
+
+                Best regards,
+                TheraConnect Team
+                `.trim();
+        yield (0, notification_service_1.sendNotificationToTherapist)({
+            userId: findTimeSlot.therapist.userId,
+            message: therapistBookingMessage,
+            type: 'BOOKING_CONFIRMED',
+            sendAt: new Date(),
+        });
+        const reminderTime = new Date(new Date(findTimeSlot.startTime).getTime() - 15 * 60 * 1000);
+        yield (0, notification_service_1.sendNotification)({
+            userId: parent.userId,
+            message: `Reminder: Your session starts in 15 minutes.`,
+            type: 'SESSION_REMINDER',
+            sendAt: reminderTime
+        });
+        // Schedule Therapist Reminder
+        yield (0, notification_service_1.sendNotification)({
+            userId: findTimeSlot.therapist.userId,
+            message: `Reminder: Your upcoming session starts in 15 minutes.`,
+            type: 'SESSION_REMINDER',
+            sendAt: reminderTime
+        });
         res.status(201).json(booking);
     }
     catch (error) {

@@ -1,17 +1,53 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const validate_middleware_1 = require("../../middleware/validate.middleware");
 const client_1 = require("@prisma/client");
 const booking_controller_1 = require("./booking.controller");
+const zoomController = __importStar(require("./zoom.controller"));
 const booking_validation_1 = require("./booking.validation");
 const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authenticate);
+router.get('/test', (req, res) => {
+    res.json({ message: 'booking API is working', timestamp: new Date().toISOString() });
+});
 // A parent can get slots for a therapist
 router.get('/slots', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), (0, validate_middleware_1.validate)({ query: booking_validation_1.getSlotsQuerySchema.shape.query }), booking_controller_1.getAvailableSlotsHandler);
 // A parent can create a booking
 router.post('/', (0, auth_middleware_1.authorize)([client_1.Role.PARENT]), (0, validate_middleware_1.validate)({ body: booking_validation_1.createBookingSchema.shape.body }), booking_controller_1.createBookingHandler);
 // Both parents and therapists can view their own bookings
 router.get('/me', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), booking_controller_1.getMyBookingsHandler);
+// Zoom meeting integration
+// Therapist creates a Zoom meeting for a booking (stores meetingId/password)
+router.post('/:bookingId/zoom/create', (0, auth_middleware_1.authorize)([client_1.Role.THERAPIST]), zoomController.createMeetingForBooking);
+// Therapist toggles that host has started the session
+router.post('/:bookingId/zoom/host-started', (0, auth_middleware_1.authorize)([client_1.Role.THERAPIST]), zoomController.markHostStarted);
+// Get SDK signature for current user (role derived), blocked if parent and host not started
+router.get('/:bookingId/zoom/signature', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), zoomController.getSignature);
+// Mark session as completed (can be called by both parent and therapist)
+router.post('/:bookingId/complete', (0, auth_middleware_1.authorize)([client_1.Role.PARENT, client_1.Role.THERAPIST]), booking_controller_1.markSessionCompletedHandler);
 exports.default = router;

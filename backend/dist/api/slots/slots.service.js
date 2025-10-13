@@ -10,9 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bookSlot = exports.generateAndGetAvailableSlots = void 0;
-const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = require("../../utils/prisma");
 /**
  * Checks if a given time falls within any of the therapist's breaks.
  */
@@ -30,7 +29,7 @@ function isTimeInBreak(time, breaks, date) {
  * Generate slots for a day if not exists, then return available ones.
  */
 const generateAndGetAvailableSlots = (therapistId, date) => __awaiter(void 0, void 0, void 0, function* () {
-    const therapist = yield prisma.therapistProfile.findUnique({
+    const therapist = yield prisma_1.prisma.therapistProfile.findUnique({
         where: { id: therapistId },
         include: { breaks: true },
     });
@@ -38,7 +37,7 @@ const generateAndGetAvailableSlots = (therapistId, date) => __awaiter(void 0, vo
         throw new Error('Therapist not found');
     const dayStart = new Date(`${date}T00:00:00.000Z`);
     const dayEnd = new Date(`${date}T23:59:59.999Z`);
-    const existingSlotsCount = yield prisma.timeSlot.count({
+    const existingSlotsCount = yield prisma_1.prisma.timeSlot.count({
         where: { therapistId, startTime: { gte: dayStart, lte: dayEnd } },
     });
     if (existingSlotsCount === 0) {
@@ -57,10 +56,10 @@ const generateAndGetAvailableSlots = (therapistId, date) => __awaiter(void 0, vo
             currentSlotTime = slotEndTime;
         }
         if (slotsToCreate.length > 0) {
-            yield prisma.timeSlot.createMany({ data: slotsToCreate });
+            yield prisma_1.prisma.timeSlot.createMany({ data: slotsToCreate });
         }
     }
-    return prisma.timeSlot.findMany({
+    return prisma_1.prisma.timeSlot.findMany({
         where: {
             therapistId,
             isBooked: false,
@@ -77,7 +76,7 @@ const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, vo
     let slot;
     let child;
     let newBooking;
-    yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         slot = yield tx.timeSlot.findFirstOrThrow({
             where: { id: timeSlotId, isBooked: false },
             include: { therapist: { include: { user: true } } },

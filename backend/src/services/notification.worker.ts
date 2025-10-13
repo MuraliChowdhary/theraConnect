@@ -1,14 +1,14 @@
 // notification.worker.ts
 import cron from "node-cron";
-import { PrismaClient } from '@prisma/client';
 import { sendemail } from "./email.service";
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
-cron.schedule("* * * * *", async () => {  // runs every minute
+cron.schedule("* * * * *", async () => {
+  console.log("working running")  // runs every minute
   const pendingNotifications = await prisma.notification.findMany({
     where: {
       status: "PENDING",
-      sendAt: { lte: new Date() } 
+      sendAt: { lte: new Date() }
     }
   });
 

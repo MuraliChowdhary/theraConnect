@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { sendNotification } from '../../services/notification.service';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../utils/prisma';
 
 /**
  * Checks if a given time falls within any of the therapist's breaks.

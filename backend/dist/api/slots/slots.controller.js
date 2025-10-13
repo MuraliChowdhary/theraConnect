@@ -34,8 +34,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bookSlotHandler = exports.getAvailableSlotsHandler = void 0;
 const slotsService = __importStar(require("./slots.service"));
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = require("../../utils/prisma");
 const getAvailableSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { therapistId, date } = req.body;
@@ -51,7 +50,7 @@ exports.getAvailableSlotsHandler = getAvailableSlotsHandler;
 const bookSlotHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { timeSlotId, childId } = req.body;
-        const parentProfile = yield prisma.parentProfile.findUniqueOrThrow({
+        const parentProfile = yield prisma_1.prisma.parentProfile.findUniqueOrThrow({
             where: { userId: req.user.userId },
         });
         const booking = yield slotsService.bookSlot(parentProfile.id, childId, timeSlotId);

@@ -32,12 +32,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requestLeaveHandler = exports.createTimeSlotsHandler = exports.getMyProfileHandler = void 0;
+exports.getMySlotsForDateHandler = exports.requestLeaveHandler = exports.createTimeSlotsHandler = exports.getMyProfileHandler = void 0;
 const therapistService = __importStar(require("./therapist.service"));
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = require("../../utils/prisma");
 const getTherapistId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const profile = yield prisma.therapistProfile.findUnique({ where: { userId }, select: { id: true } });
+    const profile = yield prisma_1.prisma.therapistProfile.findUnique({ where: { userId }, select: { id: true } });
     if (!profile)
         throw new Error('Therapist profile not found');
     return profile.id;
@@ -55,10 +54,12 @@ exports.getMyProfileHandler = getMyProfileHandler;
 const createTimeSlotsHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const therapistId = yield getTherapistId(req.user.userId);
-        yield therapistService.createTimeSlots(therapistId, req.body);
-        res.status(201).json({ message: 'Time slots created successfully.' });
+        console.log('[createTimeSlots] therapistId=', therapistId, 'body=', req.body);
+        const result = yield therapistService.createTimeSlots(therapistId, req.body);
+        res.status(201).json(result);
     }
     catch (error) {
+        console.error('[createTimeSlots][ERROR]', error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -74,3 +75,18 @@ const requestLeaveHandler = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.requestLeaveHandler = requestLeaveHandler;
+const getMySlotsForDateHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const therapistId = yield getTherapistId(req.user.userId);
+        const date = ((_d = (_c = (_b = (_a = res.locals) === null || _a === void 0 ? void 0 : _a.validated) === null || _b === void 0 ? void 0 : _b.query) === null || _c === void 0 ? void 0 : _c.date) !== null && _d !== void 0 ? _d : req.query.date);
+        console.log('[getMySlotsForDate] therapistId=', therapistId, 'date=', date);
+        const slots = yield therapistService.getMySlotsForDate(therapistId, { date });
+        res.status(200).json(slots);
+    }
+    catch (error) {
+        console.error('[getMySlotsForDate][ERROR]', error);
+        res.status(400).json({ message: error.message });
+    }
+});
+exports.getMySlotsForDateHandler = getMySlotsForDateHandler;

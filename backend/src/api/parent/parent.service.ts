@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import type { childSchema } from './parent.validation';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../utils/prisma';
 type ChildInput = z.infer<typeof childSchema>['body'];
 
 export const getParentProfile = async (userId: string) => {
@@ -29,5 +29,20 @@ export const updateChild = async (childId: string, parentId: string, input: Part
 export const deleteChild = async (childId: string, parentId: string) => {
     return prisma.child.delete({
         where: { id: childId, parentId },
+    });
+};
+
+export const listActiveTherapists = async () => {
+    return prisma.therapistProfile.findMany({
+        where: { status: 'ACTIVE' },
+        select: {
+            id: true,
+            name: true,
+            specialization: true,
+            experience: true,
+            baseCostPerSession: true,
+            averageRating: true,
+        },
+        orderBy: { name: 'asc' },
     });
 };

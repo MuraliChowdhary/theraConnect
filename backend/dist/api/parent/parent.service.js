@@ -9,33 +9,47 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteChild = exports.updateChild = exports.addChild = exports.getChildren = exports.getParentProfile = void 0;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+exports.listActiveTherapists = exports.deleteChild = exports.updateChild = exports.addChild = exports.getChildren = exports.getParentProfile = void 0;
+const prisma_1 = require("../../utils/prisma");
 const getParentProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.parentProfile.findUnique({ where: { userId } });
+    return prisma_1.prisma.parentProfile.findUnique({ where: { userId } });
 });
 exports.getParentProfile = getParentProfile;
 const getChildren = (parentId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.findMany({ where: { parentId } });
+    return prisma_1.prisma.child.findMany({ where: { parentId } });
 });
 exports.getChildren = getChildren;
 const addChild = (parentId, input) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.create({
+    return prisma_1.prisma.child.create({
         data: Object.assign(Object.assign({}, input), { parentId }),
     });
 });
 exports.addChild = addChild;
 const updateChild = (childId, parentId, input) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.update({
+    return prisma_1.prisma.child.update({
         where: { id: childId, parentId }, // Ensures a parent can only update their own child
         data: input,
     });
 });
 exports.updateChild = updateChild;
 const deleteChild = (childId, parentId) => __awaiter(void 0, void 0, void 0, function* () {
-    return prisma.child.delete({
+    return prisma_1.prisma.child.delete({
         where: { id: childId, parentId },
     });
 });
 exports.deleteChild = deleteChild;
+const listActiveTherapists = () => __awaiter(void 0, void 0, void 0, function* () {
+    return prisma_1.prisma.therapistProfile.findMany({
+        where: { status: 'ACTIVE' },
+        select: {
+            id: true,
+            name: true,
+            specialization: true,
+            experience: true,
+            baseCostPerSession: true,
+            averageRating: true,
+        },
+        orderBy: { name: 'asc' },
+    });
+});
+exports.listActiveTherapists = listActiveTherapists;

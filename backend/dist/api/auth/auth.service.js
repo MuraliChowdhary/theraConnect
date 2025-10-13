@@ -20,58 +20,56 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.registerAdmin = exports.registerTherapist = exports.registerParent = void 0;
+exports.login = exports.changePassword = exports.registerAdmin = exports.registerTherapist = exports.registerParent = void 0;
 const client_1 = require("@prisma/client");
 const password_1 = require("../../utils/password");
 const jwt_1 = require("../../utils/jwt");
 const prisma = new client_1.PrismaClient();
 const registerParent = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, name, phone } = input;
-    const existingUser = yield prisma.user.findUnique({
-        where: { email },
-    });
-    if (existingUser) {
-        throw new Error('User with this email already exists');
-    }
-    console.time('hashPassword');
-    const hashedPassword = yield (0, password_1.hashPassword)(password);
-    console.timeEnd('hashPassword');
-    console.time('createUser');
-    const user = yield prisma.user.create({
-        data: {
-            email,
-            password: hashedPassword,
-            role: client_1.Role.PARENT,
-            parentProfile: {
-                create: {
-                    name,
-                    phone,
-                },
-            },
-        },
-        include: {
-            parentProfile: true,
-        },
-    });
-    console.timeEnd('createUser');
-    return user;
-});
-exports.registerParent = registerParent;
-const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, name, phone, specialization, experience, baseCostPerSession } = input;
     const existingUser = yield prisma.user.findUnique({ where: { email } });
     if (existingUser)
         throw new Error('User with this email already exists');
     const hashedPassword = yield (0, password_1.hashPassword)(password);
     return prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const user = yield tx.user.create({
-            data: { email, password: hashedPassword, role: client_1.Role.THERAPIST },
+            data: { email, password: hashedPassword, role: client_1.Role.PARENT },
         });
-        yield tx.therapistProfile.create({
-            data: { userId: user.id, name, phone, specialization, experience, baseCostPerSession },
-        });
+        yield tx.parentProfile.create({ data: { userId: user.id, name, phone } });
         return user;
     }));
+});
+exports.registerParent = registerParent;
+const registerTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, password, name, phone, specialization, experience, baseCostPerSession } = input;
+    // Pre-checks to surface conflicts as 409
+    const [existingUser, existingPhone] = yield Promise.all([
+        prisma.user.findUnique({ where: { email } }),
+        prisma.therapistProfile.findUnique({ where: { phone } }).catch(() => null),
+    ]);
+    if (existingUser)
+        throw new Error('User with this email already exists');
+    if (existingPhone)
+        throw new Error('Therapist with this phone already exists');
+    const hashedPassword = yield (0, password_1.hashPassword)(password);
+    try {
+        return yield prisma.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+            const user = yield tx.user.create({
+                data: { email, password: hashedPassword, role: client_1.Role.THERAPIST },
+            });
+            yield tx.therapistProfile.create({
+                data: { userId: user.id, name, phone, specialization, experience, baseCostPerSession, status: client_1.TherapistStatus.ACTIVE },
+            });
+            return user;
+        }));
+    }
+    catch (error) {
+        // Normalize Prisma unique constraint error to a friendly conflict message
+        if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            throw new Error('An account with this email/phone already exists');
+        }
+        throw error;
+    }
 });
 exports.registerTherapist = registerTherapist;
 const registerAdmin = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -89,6 +87,18 @@ const registerAdmin = (input) => __awaiter(void 0, void 0, void 0, function* () 
     }));
 });
 exports.registerAdmin = registerAdmin;
+const changePassword = (_a) => __awaiter(void 0, [_a], void 0, function* ({ email, currentPassword, newPassword }) {
+    const user = yield prisma.user.findUnique({ where: { email } });
+    if (!user)
+        throw new Error('No account found with this email');
+    const isValid = yield (0, password_1.comparePassword)(currentPassword, user.password);
+    if (!isValid)
+        throw new Error('Current password is incorrect');
+    const hashed = yield (0, password_1.hashPassword)(newPassword);
+    yield prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
+    return { message: 'Password updated successfully' };
+});
+exports.changePassword = changePassword;
 const login = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = input;
     const user = yield prisma.user.findUnique({ where: { email } });

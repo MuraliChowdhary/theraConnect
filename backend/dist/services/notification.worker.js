@@ -14,27 +14,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // notification.worker.ts
 const node_cron_1 = __importDefault(require("node-cron"));
-const client_1 = require("@prisma/client");
 const email_service_1 = require("./email.service");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = require("../utils/prisma");
 node_cron_1.default.schedule("* * * * *", () => __awaiter(void 0, void 0, void 0, function* () {
-    const pendingNotifications = yield prisma.notification.findMany({
+    console.log("working running"); // runs every minute
+    const pendingNotifications = yield prisma_1.prisma.notification.findMany({
         where: {
             status: "PENDING",
             sendAt: { lte: new Date() }
         }
     });
     for (const notif of pendingNotifications) {
-        const user = yield prisma.user.findUnique({ where: { id: notif.userId } });
+        const user = yield prisma_1.prisma.user.findUnique({ where: { id: notif.userId } });
         if (!(user === null || user === void 0 ? void 0 : user.email)) {
-            yield prisma.notification.update({
+            yield prisma_1.prisma.notification.update({
                 where: { id: notif.id },
                 data: { status: "FAILED" }
             });
             continue;
         }
         const result = yield (0, email_service_1.sendemail)(user.email, notif.message);
-        yield prisma.notification.update({
+        yield prisma_1.prisma.notification.update({
             where: { id: notif.id },
             data: { status: result.success ? "SENT" : "FAILED" }
         });

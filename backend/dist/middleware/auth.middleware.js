@@ -10,9 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorize = exports.authenticate = void 0;
-const client_1 = require("@prisma/client");
 const jwt_1 = require("../utils/jwt");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = require("../utils/prisma");
 const authenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -23,7 +22,7 @@ const authenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     if (!decoded) {
         return res.status(401).json({ message: 'Authentication invalid: Invalid token.' });
     }
-    const userExists = yield prisma.user.findUnique({ where: { id: decoded.userId } });
+    const userExists = yield prisma_1.prisma.user.findUnique({ where: { id: decoded.userId } });
     if (!userExists) {
         return res.status(401).json({ message: 'Authentication invalid: User not found.' });
     }
