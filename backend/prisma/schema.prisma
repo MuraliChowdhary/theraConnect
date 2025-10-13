@@ -104,9 +104,9 @@ model TherapistProfile {
   leavesRemainingThisMonth   Int             @default(3)
    scheduleStartTime       String   @default("10:00") // Store as "HH:mm" in 24-hour format (UTC)
   slotDurationInMinutes   Int      @default(45)
-  maxSlotsPerDay          Int      @default(8)
+  maxSlotsPerDay          Int      @default(12)
 
-   breaks                  TherapistBreak[]
+   breaks                 TherapistBreak[]
   timeSlots    TimeSlot[]
   bookings     Booking[]
   payments     Payment[]

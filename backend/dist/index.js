@@ -38,6 +38,7 @@ app.use('/api/v1/parents', parent_routes_js_1.default);
 app.use('/api/v1/therapists', therapist_routes_js_1.default);
 app.use('/api/v1/bookings', booking_routes_js_1.default);
 app.use('/api/v1/slots', slots_routes_js_1.default);
+// app.use('/api/v1/feedback',feedbackRoutes);
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield prisma.$connect();
