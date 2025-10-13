@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as authService from './auth.service';
 import { signJwt } from '../../utils/jwt';
 import { sendNotification, sendNotificationAfterAnEvent } from '../../services/notification.service';
-import { prisma } from '../../utils/prisma';
+import { NotificationType, prisma } from '../../utils/prisma';
 
 const handleServiceError = (res: Response, error: any) => {
     const isConflict = error.message?.includes('exists');
@@ -44,7 +44,7 @@ export const registerParentHandler = async (req: Request, res: Response) => {
     await sendNotificationAfterAnEvent({
       userId: user.id,
       message: welcomeMessage,
-      type: 'REGISTRATION_SUCCESSFUL',
+      type: NotificationType.REGISTRATION_SUCCESSFUL,
       sendAt: new Date()
     });
 
@@ -92,7 +92,7 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
         await sendNotificationAfterAnEvent({
           userId: user.id,
           message: therapistWelcomeMessage,
-          type: 'REGISTRATION_SUCCESSFUL',
+          type: NotificationType.REGISTRATION_SUCCESSFUL,
           sendAt: new Date()
         });
 
@@ -125,7 +125,7 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
       await sendNotificationAfterAnEvent({
         userId: user.id,
         message: adminWelcomeMessage,
-        type: 'REGISTRATION_SUCCESSFUL',
+        type: NotificationType.REGISTRATION_SUCCESSFUL,
         sendAt: new Date()
         });
 
