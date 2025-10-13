@@ -30,7 +30,11 @@ const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Global Middleware
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: "https://theraconnect-0r9b.onrender.com",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express_1.default.json());
 // API Routes
 app.use('/api/v1/auth', auth_routes_js_1.default);

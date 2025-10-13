@@ -19,7 +19,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Global Middleware
-app.use(cors());
+app.use(cors({
+  origin: "https://theraconnect-0r9b.onrender.com",
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
 // API Routes
