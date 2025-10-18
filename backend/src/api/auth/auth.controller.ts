@@ -44,7 +44,6 @@ export const registerParentHandler = async (req: Request, res: Response) => {
     await sendNotificationAfterAnEvent({
       userId: user.id,
       message: welcomeMessage,
-      type: NotificationType.REGISTRATION_SUCCESSFUL,
       sendAt: new Date()
     });
 
@@ -92,7 +91,6 @@ export const registerTherapistHandler = async (req: Request, res: Response) => {
         await sendNotificationAfterAnEvent({
           userId: user.id,
           message: therapistWelcomeMessage,
-          type: NotificationType.REGISTRATION_SUCCESSFUL,
           sendAt: new Date()
         });
 
@@ -125,7 +123,6 @@ export const registerAdminHandler = async (req: Request, res: Response) => {
       await sendNotificationAfterAnEvent({
         userId: user.id,
         message: adminWelcomeMessage,
-        type: NotificationType.REGISTRATION_SUCCESSFUL,
         sendAt: new Date()
         });
 

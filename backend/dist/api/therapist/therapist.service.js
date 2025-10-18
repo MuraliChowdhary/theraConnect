@@ -129,9 +129,8 @@ const requestLeave = (therapistId, input) => __awaiter(void 0, void 0, void 0, f
     <p>We apologize for the inconvenience and encourage you to reschedule at a convenient time.</p>
     <p>Best regards,<br>TheraConnect Team</p>
   `;
-        yield (0, notification_service_1.sendNotification)({
+        yield (0, notification_service_1.sendNotificationBookingCancelled)({
             userId: booking.parent.userId,
-            type: 'BOOKING_CANCELLED',
             message: sessionCancelledMessage,
             sendAt: new Date()
         });

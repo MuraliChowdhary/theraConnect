@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as bookingService from './booking.service';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../../utils/prisma';
-import { sendNotification, sendNotificationAfterAnEvent, sendNotificationToTherapist } from '../../services/notification.service';
+import { sendNotification, sendNotificationAfterAnEvent, sendNotificationAfterAnEventSessionCompleted, sendNotificationBookingConfirmed, sendNotificationToTherapist, sendNotificationToTherapistSessionBooked } from '../../services/notification.service';
 
 
 
@@ -34,10 +34,9 @@ export const markSessionCompletedHandler = async (req: Request, res: Response) =
                 Best regards,  
                 TheraConnect Team
                 `.trim();
-            await sendNotificationAfterAnEvent({
+            await sendNotificationAfterAnEventSessionCompleted({
                 userId: parentId.parentId,
                 message: sessionCompletedMessage,
-                type: 'SESSION_COMPLETED',
                 sendAt: new Date()
             });
     res.status(200).json({ 
@@ -124,10 +123,9 @@ export const createBookingHandler = async (req: Request, res: Response) => {
             The TheraConnect Team
             `.trim();
 
-            await sendNotificationAfterAnEvent({
+            await sendNotificationBookingConfirmed({
             userId:userId,
             message: bookingMessage,
-            type: 'BOOKING_CONFIRMED',
             sendAt: new Date(),
             });
 
@@ -148,10 +146,9 @@ export const createBookingHandler = async (req: Request, res: Response) => {
                 TheraConnect Team
                 `.trim();
 
-            await sendNotificationToTherapist({
+            await sendNotificationToTherapistSessionBooked({
             userId:findTimeSlot.therapist.userId,
             message: therapistBookingMessage,
-            type: 'BOOKING_CONFIRMED',
             sendAt: new Date(),
             })
 
@@ -160,7 +157,6 @@ export const createBookingHandler = async (req: Request, res: Response) => {
             await sendNotification({
             userId: parent.userId,
             message: `Reminder: Your session starts in 15 minutes.`,
-            type: 'SESSION_REMINDER',
             sendAt: reminderTime
             });
 
@@ -168,7 +164,6 @@ export const createBookingHandler = async (req: Request, res: Response) => {
             await sendNotification({
             userId: findTimeSlot.therapist.userId,
             message: `Reminder: Your upcoming session starts in 15 minutes.`,
-            type: 'SESSION_REMINDER',
             sendAt: reminderTime
             });
 

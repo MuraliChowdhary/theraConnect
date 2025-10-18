@@ -1,6 +1,6 @@
 import { NotificationType, Role, TherapistStatus } from '@prisma/client';
 import { z } from 'zod';
-import { sendNotification } from '../../services/notification.service';
+import { sendNotification, sendNotificationAfterAnEvent, sendNotificationToTherapistSessionBooked } from '../../services/notification.service';
 import type { createBookingSchema } from './booking.validation';
 import {prisma} from '../../utils/prisma';
 type CreateBookingInput = z.infer<typeof createBookingSchema>['body'];
@@ -41,14 +41,12 @@ export const markSessionCompleted = async (bookingId: string) => {
   await sendNotification({
     userId: booking.parent.userId,
     message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
-    type: 'SESSION_COMPLETED' as any,
     sendAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes later
   })
 
   await sendNotification({
     userId: booking.therapist.userId,
     message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
-    type: 'SESSION_COMPLETED' as any,
     sendAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes later
   })
 
@@ -136,16 +134,72 @@ export const createBooking = async (parentId: string, input: CreateBookingInput)
         return newBooking;
     });
 
-    await sendNotification({
+    if(!parent) throw new Error('Parent profile not found');
+    if(!parent.userId) throw new Error('Parent userId not found');
+
+     const findTimeSlot = await prisma.timeSlot.findUnique({
+                where:{
+                    id:timeSlotId
+                },
+                select:{
+                    startTime:true,
+                    endTime:true,
+                    therapist:{
+                        select:{
+                            userId:true,
+                            name:true
+                        }
+                    }
+                }
+            })
+
+            
+                if (!findTimeSlot) {
+                    throw new Error("TimeSlot not found");
+                }
+
+            const userId = parent.userId;
+        const bookingMessage = `Hi ${parent.name || 'there'},
+
+            Your session booking has been successfully confirmed!
+
+            Details:
+            • Booking ID: ${booking.id}
+            • Date & Time: ${findTimeSlot.startTime} - ${findTimeSlot.endTime}
+
+            You can join the session via your TheraConnect dashboard when it's time.
+
+            We look forward to helping you on your wellness journey!
+
+            Warm regards,  
+            The TheraConnect Team
+            `.trim();
+
+        const therapistBookingMessage = `
+                Hi ${findTimeSlot.therapist.name || 'there'},
+
+                Good news! A parent has booked a session with you.
+
+                Session Details:
+                • Date & Time: ${findTimeSlot.startTime.toLocaleString()} - ${findTimeSlot.endTime.toLocaleString()}
+                • Booking ID: ${booking.id}
+
+                Please make sure to prepare for the session and be ready at the scheduled time.
+
+                Thank you for providing your expertise and support to our clients.
+
+                Best regards,
+                TheraConnect Team
+                `.trim();
+
+    await sendNotificationToTherapistSessionBooked({
         userId: timeSlot.therapist.userId,
-        type: NotificationType.BOOKING_CONFIRMED,
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+        message: therapistBookingMessage,
         sendAt: new Date()
     });
-    await sendNotification({
+    await sendNotificationAfterAnEvent({
         userId: parent!.userId,
-        type: NotificationType.BOOKING_CONFIRMED,
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+        message: bookingMessage,
         sendAt: new Date()
     });
 

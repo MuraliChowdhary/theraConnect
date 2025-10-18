@@ -1,6 +1,6 @@
 import { PrismaClient, BookingStatus } from '@prisma/client';
 import { z } from 'zod';
-import { sendNotification } from '../../services/notification.service';
+import { sendNotification, sendNotificationBookingCancelled } from '../../services/notification.service';
 import type { requestLeaveSchema, createTimeSlotsSchema } from './therapist.validation';
 type GetSlotsInput = { date: string };
 import { prisma } from '../../utils/prisma';
@@ -132,9 +132,8 @@ export const requestLeave = async (therapistId: string, input: RequestLeaveInput
     <p>We apologize for the inconvenience and encourage you to reschedule at a convenient time.</p>
     <p>Best regards,<br>TheraConnect Team</p>
   `;
-    await sendNotification({
+    await sendNotificationBookingCancelled({
       userId: booking.parent.userId,
-      type: 'BOOKING_CANCELLED',
       message: sessionCancelledMessage,
        sendAt: new Date()
     });

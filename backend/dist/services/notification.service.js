@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendNotification = exports.sendNotificationAfterAnEvent = exports.sendNotificationToTherapist = void 0;
+exports.therapistAccountApproved = exports.sendNotificationBookingConfirmed = exports.sendNotificationAfterAnEventSessionCompleted = exports.sendNotificationBookingCancelled = exports.sendNotification = exports.sendNotificationAfterAnEvent = exports.sendNotificationToTherapistSessionBooked = exports.sendNotificationToTherapist = void 0;
 const prisma_1 = require("../utils/prisma");
 const client_1 = require("@prisma/client");
 const sendNotificationToTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -17,7 +17,7 @@ const sendNotificationToTherapist = (input) => __awaiter(void 0, void 0, void 0,
         data: {
             userId: input.userId,
             message: input.message,
-            type: input.type,
+            type: client_1.NotificationType.SESSION_COMPLETED,
             channel: 'EMAIL',
             status: "PENDING",
             sendAt: input.sendAt
@@ -25,6 +25,19 @@ const sendNotificationToTherapist = (input) => __awaiter(void 0, void 0, void 0,
     });
 });
 exports.sendNotificationToTherapist = sendNotificationToTherapist;
+const sendNotificationToTherapistSessionBooked = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.prisma.notification.create({
+        data: {
+            userId: input.userId,
+            message: input.message,
+            type: client_1.NotificationType.BOOKING_CONFIRMED,
+            channel: 'EMAIL',
+            status: "PENDING",
+            sendAt: input.sendAt
+        }
+    });
+});
+exports.sendNotificationToTherapistSessionBooked = sendNotificationToTherapistSessionBooked;
 const sendNotificationAfterAnEvent = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield prisma_1.prisma.notification.create({
         data: {
@@ -43,7 +56,7 @@ const sendNotification = (input) => __awaiter(void 0, void 0, void 0, function* 
         data: {
             userId: input.userId,
             message: input.message,
-            type: "SESSION_REMINDER",
+            type: client_1.NotificationType.SESSION_REMINDER,
             channel: "EMAIL",
             status: "PENDING",
             sendAt: input.sendAt
@@ -51,3 +64,55 @@ const sendNotification = (input) => __awaiter(void 0, void 0, void 0, function* 
     });
 });
 exports.sendNotification = sendNotification;
+const sendNotificationBookingCancelled = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.prisma.notification.create({
+        data: {
+            userId: input.userId,
+            message: input.message,
+            type: client_1.NotificationType.BOOKING_CANCELLED,
+            channel: "EMAIL",
+            status: "PENDING",
+            sendAt: input.sendAt
+        }
+    });
+});
+exports.sendNotificationBookingCancelled = sendNotificationBookingCancelled;
+const sendNotificationAfterAnEventSessionCompleted = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.prisma.notification.create({
+        data: {
+            userId: input.userId,
+            message: input.message,
+            type: client_1.NotificationType.SESSION_COMPLETED,
+            channel: 'EMAIL',
+            status: "PENDING",
+            sendAt: input.sendAt
+        }
+    });
+});
+exports.sendNotificationAfterAnEventSessionCompleted = sendNotificationAfterAnEventSessionCompleted;
+const sendNotificationBookingConfirmed = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.prisma.notification.create({
+        data: {
+            userId: input.userId,
+            message: input.message,
+            type: client_1.NotificationType.BOOKING_CONFIRMED,
+            channel: 'EMAIL',
+            status: "PENDING",
+            sendAt: input.sendAt
+        }
+    });
+});
+exports.sendNotificationBookingConfirmed = sendNotificationBookingConfirmed;
+const therapistAccountApproved = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.prisma.notification.create({
+        data: {
+            userId: input.userId,
+            message: input.message,
+            type: client_1.NotificationType.THERAPIST_ACCOUNT_APPROVED,
+            channel: 'EMAIL',
+            status: "PENDING",
+            sendAt: input.sendAt
+        }
+    });
+});
+exports.therapistAccountApproved = therapistAccountApproved;

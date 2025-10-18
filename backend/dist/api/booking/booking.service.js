@@ -45,13 +45,11 @@ const markSessionCompleted = (bookingId) => __awaiter(void 0, void 0, void 0, fu
     yield (0, notification_service_1.sendNotification)({
         userId: booking.parent.userId,
         message: `Session with ${booking.therapist.name} for ${booking.child.name} has been completed. Please provide your feedback.`,
-        type: 'SESSION_COMPLETED',
         sendAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes later
     });
     yield (0, notification_service_1.sendNotification)({
         userId: booking.therapist.userId,
         message: `Session with ${booking.child.name} has been completed. Please create a session report.`,
-        type: 'SESSION_COMPLETED',
         sendAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes later
     });
     return updatedBooking;
@@ -131,16 +129,68 @@ const createBooking = (parentId, input) => __awaiter(void 0, void 0, void 0, fun
         });
         return newBooking;
     }));
-    yield (0, notification_service_1.sendNotification)({
+    if (!parent)
+        throw new Error('Parent profile not found');
+    if (!parent.userId)
+        throw new Error('Parent userId not found');
+    const findTimeSlot = yield prisma_1.prisma.timeSlot.findUnique({
+        where: {
+            id: timeSlotId
+        },
+        select: {
+            startTime: true,
+            endTime: true,
+            therapist: {
+                select: {
+                    userId: true,
+                    name: true
+                }
+            }
+        }
+    });
+    if (!findTimeSlot) {
+        throw new Error("TimeSlot not found");
+    }
+    const userId = parent.userId;
+    const bookingMessage = `Hi ${parent.name || 'there'},
+
+            Your session booking has been successfully confirmed!
+
+            Details:
+            • Booking ID: ${booking.id}
+            • Date & Time: ${findTimeSlot.startTime} - ${findTimeSlot.endTime}
+
+            You can join the session via your TheraConnect dashboard when it's time.
+
+            We look forward to helping you on your wellness journey!
+
+            Warm regards,  
+            The TheraConnect Team
+            `.trim();
+    const therapistBookingMessage = `
+                Hi ${findTimeSlot.therapist.name || 'there'},
+
+                Good news! A parent has booked a session with you.
+
+                Session Details:
+                • Date & Time: ${findTimeSlot.startTime.toLocaleString()} - ${findTimeSlot.endTime.toLocaleString()}
+                • Booking ID: ${booking.id}
+
+                Please make sure to prepare for the session and be ready at the scheduled time.
+
+                Thank you for providing your expertise and support to our clients.
+
+                Best regards,
+                TheraConnect Team
+                `.trim();
+    yield (0, notification_service_1.sendNotificationToTherapistSessionBooked)({
         userId: timeSlot.therapist.userId,
-        type: client_1.NotificationType.BOOKING_CONFIRMED,
-        message: `You have a new booking with ${child.name} on ${timeSlot.startTime.toLocaleString()}.`,
+        message: therapistBookingMessage,
         sendAt: new Date()
     });
-    yield (0, notification_service_1.sendNotification)({
+    yield (0, notification_service_1.sendNotificationAfterAnEvent)({
         userId: parent.userId,
-        type: client_1.NotificationType.BOOKING_CONFIRMED,
-        message: `Your booking for ${child.name} is confirmed for ${timeSlot.startTime.toLocaleString()}.`,
+        message: bookingMessage,
         sendAt: new Date()
     });
     return booking;

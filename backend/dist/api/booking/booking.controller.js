@@ -62,10 +62,9 @@ const markSessionCompletedHandler = (req, res) => __awaiter(void 0, void 0, void
                 Best regards,  
                 TheraConnect Team
                 `.trim();
-        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
+        yield (0, notification_service_1.sendNotificationAfterAnEventSessionCompleted)({
             userId: parentId.parentId,
             message: sessionCompletedMessage,
-            type: 'SESSION_COMPLETED',
             sendAt: new Date()
         });
         res.status(200).json({
@@ -145,10 +144,9 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
             Warm regards,  
             The TheraConnect Team
             `.trim();
-        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
+        yield (0, notification_service_1.sendNotificationBookingConfirmed)({
             userId: userId,
             message: bookingMessage,
-            type: 'BOOKING_CONFIRMED',
             sendAt: new Date(),
         });
         const therapistBookingMessage = `
@@ -167,24 +165,21 @@ const createBookingHandler = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 Best regards,
                 TheraConnect Team
                 `.trim();
-        yield (0, notification_service_1.sendNotificationToTherapist)({
+        yield (0, notification_service_1.sendNotificationToTherapistSessionBooked)({
             userId: findTimeSlot.therapist.userId,
             message: therapistBookingMessage,
-            type: 'BOOKING_CONFIRMED',
             sendAt: new Date(),
         });
         const reminderTime = new Date(new Date(findTimeSlot.startTime).getTime() - 15 * 60 * 1000);
         yield (0, notification_service_1.sendNotification)({
             userId: parent.userId,
             message: `Reminder: Your session starts in 15 minutes.`,
-            type: 'SESSION_REMINDER',
             sendAt: reminderTime
         });
         // Schedule Therapist Reminder
         yield (0, notification_service_1.sendNotification)({
             userId: findTimeSlot.therapist.userId,
             message: `Reminder: Your upcoming session starts in 15 minutes.`,
-            type: 'SESSION_REMINDER',
             sendAt: reminderTime
         });
         res.status(201).json(booking);
