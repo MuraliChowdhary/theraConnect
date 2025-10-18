@@ -16,6 +16,8 @@ COPY . .
 # 6. Generate Prisma client
 RUN npx prisma generate
 
+RUN npx prisma migrate deploy
+
 # 7. Build TypeScript to dist/
 RUN npm run build
 
