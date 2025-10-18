@@ -40,7 +40,7 @@ export const sendNotificationAfterAnEvent = async (input: NotificationInput) => 
     data: {
       userId: input.userId,
       message: input.message,
-      type: NotificationType.REGISTRATION_SUCCESSFUL,
+      type: "REGISTRATION_SUCCESSFUL",
       channel: 'EMAIL',
       status: "PENDING",
       sendAt: input.sendAt

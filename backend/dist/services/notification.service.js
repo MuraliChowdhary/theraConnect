@@ -43,7 +43,7 @@ const sendNotificationAfterAnEvent = (input) => __awaiter(void 0, void 0, void 0
         data: {
             userId: input.userId,
             message: input.message,
-            type: client_1.NotificationType.REGISTRATION_SUCCESSFUL,
+            type: "REGISTRATION_SUCCESSFUL",
             channel: 'EMAIL',
             status: "PENDING",
             sendAt: input.sendAt
