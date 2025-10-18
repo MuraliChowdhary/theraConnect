@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bookSlot = exports.generateAndGetAvailableSlots = void 0;
+const client_1 = require("@prisma/client");
 const notification_service_1 = require("../../services/notification.service");
 const prisma_1 = require("../../utils/prisma");
 /**
@@ -102,14 +103,14 @@ const bookSlot = (parentId, childId, timeSlotId) => __awaiter(void 0, void 0, vo
     const notificationsToQueue = [
         {
             userId: slot.therapist.user.id,
-            type: 'BOOKING_CONFIRMED',
+            type: client_1.NotificationType.BOOKING_CONFIRMED,
             channel: 'EMAIL', // Use NotificationChannel properly
             message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
             sendAt: new Date(Date.now() + 5 * 60 * 1000),
         },
         {
             userId: child.parent.user.id,
-            type: 'BOOKING_CONFIRMED',
+            type: client_1.NotificationType.BOOKING_CONFIRMED,
             channel: 'EMAIL',
             message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
             sendAt: new Date(Date.now() + 5 * 60 * 1000),

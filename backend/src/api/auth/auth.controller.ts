@@ -44,7 +44,7 @@ export const registerParentHandler = async (req: Request, res: Response) => {
     await sendNotificationAfterAnEvent({
       userId: user.id,
       message: welcomeMessage,
-      type: "REGISTRATION_SUCCESSFUL",
+      type: NotificationType.REGISTRATION_SUCCESSFUL,
       sendAt: new Date()
     });
 

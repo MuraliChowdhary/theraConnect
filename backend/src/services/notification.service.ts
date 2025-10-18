@@ -6,7 +6,7 @@ import { NotificationType } from '@prisma/client';
 export interface NotificationInput {
   userId: string;
   message: string;
-  type: string;
+  type: NotificationType;
   sendAt: Date;
 }
 
@@ -15,7 +15,7 @@ export const sendNotificationToTherapist = async (input: NotificationInput) => {
     data: {
       userId: input.userId,
       message: input.message,
-      type: input.type as NotificationType,
+      type: input.type ,
       channel: 'EMAIL',
       status: "PENDING",
       sendAt: input.sendAt

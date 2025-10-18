@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { NotificationType, PrismaClient } from '@prisma/client';
 import { sendNotification } from '../../services/notification.service';
 
 import { prisma } from '../../utils/prisma';
@@ -114,14 +114,14 @@ export const bookSlot = async (parentId: string, childId: string, timeSlotId: st
   const notificationsToQueue = [
     {
       userId: slot.therapist.user.id,
-      type: 'BOOKING_CONFIRMED',
+      type: NotificationType.BOOKING_CONFIRMED,
       channel: 'EMAIL', // Use NotificationChannel properly
       message: `New booking confirmed with ${child.name} on ${slot.startTime.toLocaleDateString()}.`,
       sendAt: new Date(Date.now() + 5 * 60 * 1000),
     },
     {
       userId: child.parent.user.id,
-      type: 'BOOKING_CONFIRMED',
+      type: NotificationType.BOOKING_CONFIRMED,
       channel: 'EMAIL',
       message: `Your booking for ${child.name} is confirmed for ${slot.startTime.toLocaleString()}.`,
       sendAt: new Date(Date.now() + 5 * 60 * 1000),
