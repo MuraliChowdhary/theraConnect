@@ -29,6 +29,9 @@ dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+});
 // Global Middleware
 app.use((0, cors_1.default)({
     origin: "https://theraconnect-0r9b.onrender.com",

@@ -18,6 +18,10 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+})
+
 // Global Middleware
 app.use(cors({
   origin: "https://theraconnect-0r9b.onrender.com",
