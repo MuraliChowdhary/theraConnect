@@ -83,11 +83,11 @@ const registerParentHandler = (req, res) => __awaiter(void 0, void 0, void 0, fu
             The TheraConnect Team
     `.trim();
         // Send Notification
-        // await sendNotificationAfterAnEvent({
-        //   userId: user.id,
-        //   message: welcomeMessage,
-        //   sendAt: new Date()
-        // });
+        yield (0, notification_service_1.sendNotificationAfterAnEvent)({
+            userId: user.id,
+            message: welcomeMessage,
+            sendAt: new Date()
+        });
         res.status(201).json({
             message: 'Parent registered successfully',
             user: userWithoutPassword,
