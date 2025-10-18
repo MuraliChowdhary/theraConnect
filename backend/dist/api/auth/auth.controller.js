@@ -86,7 +86,7 @@ const registerParentHandler = (req, res) => __awaiter(void 0, void 0, void 0, fu
         yield (0, notification_service_1.sendNotificationAfterAnEvent)({
             userId: user.id,
             message: welcomeMessage,
-            type: prisma_1.NotificationType.REGISTRATION_SUCCESSFUL,
+            type: "REGISTRATION_SUCCESSFUL",
             sendAt: new Date()
         });
         res.status(201).json({
