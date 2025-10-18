@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendNotification = exports.sendNotificationAfterAnEvent = exports.sendNotificationToTherapist = void 0;
 const prisma_1 = require("../utils/prisma");
+const client_1 = require("@prisma/client");
 const sendNotificationToTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield prisma_1.prisma.notification.create({
         data: {
@@ -29,7 +30,7 @@ const sendNotificationAfterAnEvent = (input) => __awaiter(void 0, void 0, void 0
         data: {
             userId: input.userId,
             message: input.message,
-            type: input.type,
+            type: client_1.NotificationType.REGISTRATION_SUCCESSFUL,
             channel: 'EMAIL',
             status: "PENDING",
             sendAt: input.sendAt
