@@ -41,11 +41,11 @@ export const registerParentHandler = async (req: Request, res: Response) => {
     `.trim();
 
     // Send Notification
-    await sendNotificationAfterAnEvent({
-      userId: user.id,
-      message: welcomeMessage,
-      sendAt: new Date()
-    });
+    // await sendNotificationAfterAnEvent({
+    //   userId: user.id,
+    //   message: welcomeMessage,
+    //   sendAt: new Date()
+    // });
 
     res.status(201).json({
       message: 'Parent registered successfully',
