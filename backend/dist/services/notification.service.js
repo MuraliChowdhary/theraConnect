@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.therapistAccountApproved = exports.sendNotificationBookingConfirmed = exports.sendNotificationAfterAnEventSessionCompleted = exports.sendNotificationBookingCancelled = exports.sendNotification = exports.sendNotificationAfterAnEvent = exports.sendNotificationToTherapistSessionBooked = exports.sendNotificationToTherapist = void 0;
 const prisma_1 = require("../utils/prisma");
 const client_1 = require("@prisma/client");
+const email_service_1 = require("./email.service");
 const sendNotificationToTherapist = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield prisma_1.prisma.notification.create({
         data: {
@@ -23,6 +24,11 @@ const sendNotificationToTherapist = (input) => __awaiter(void 0, void 0, void 0,
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotificationToTherapist = sendNotificationToTherapist;
 const sendNotificationToTherapistSessionBooked = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -36,6 +42,11 @@ const sendNotificationToTherapistSessionBooked = (input) => __awaiter(void 0, vo
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotificationToTherapistSessionBooked = sendNotificationToTherapistSessionBooked;
 const sendNotificationAfterAnEvent = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,6 +62,11 @@ const sendNotificationAfterAnEvent = (input) => __awaiter(void 0, void 0, void 0
             sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotificationAfterAnEvent = sendNotificationAfterAnEvent;
 const sendNotification = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -64,6 +80,11 @@ const sendNotification = (input) => __awaiter(void 0, void 0, void 0, function* 
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotification = sendNotification;
 const sendNotificationBookingCancelled = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -77,6 +98,11 @@ const sendNotificationBookingCancelled = (input) => __awaiter(void 0, void 0, vo
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotificationBookingCancelled = sendNotificationBookingCancelled;
 const sendNotificationAfterAnEventSessionCompleted = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -90,6 +116,11 @@ const sendNotificationAfterAnEventSessionCompleted = (input) => __awaiter(void 0
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotificationAfterAnEventSessionCompleted = sendNotificationAfterAnEventSessionCompleted;
 const sendNotificationBookingConfirmed = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -103,6 +134,11 @@ const sendNotificationBookingConfirmed = (input) => __awaiter(void 0, void 0, vo
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.sendNotificationBookingConfirmed = sendNotificationBookingConfirmed;
 const therapistAccountApproved = (input) => __awaiter(void 0, void 0, void 0, function* () {
@@ -116,5 +152,10 @@ const therapistAccountApproved = (input) => __awaiter(void 0, void 0, void 0, fu
             sendAt: input.sendAt
         }
     });
+    const user = yield prisma_1.prisma.user.findUnique({ where: { id: input.userId } });
+    if (!(user === null || user === void 0 ? void 0 : user.email)) {
+        throw new Error("User email not found");
+    }
+    yield (0, email_service_1.sendemail)(user.email, input.message);
 });
 exports.therapistAccountApproved = therapistAccountApproved;

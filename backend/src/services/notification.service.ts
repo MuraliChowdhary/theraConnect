@@ -2,6 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../utils/prisma';
 import { NotificationType } from '@prisma/client';
+import { sendemail } from './email.service';
 
 export interface NotificationInput {
   userId: string;
@@ -20,6 +21,11 @@ export const sendNotificationToTherapist = async (input: NotificationInput) => {
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
 
 export const sendNotificationToTherapistSessionBooked = async (input: NotificationInput) => {
@@ -33,6 +39,11 @@ export const sendNotificationToTherapistSessionBooked = async (input: Notificati
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
 
 export const sendNotificationAfterAnEvent = async (input: NotificationInput) => {
@@ -48,6 +59,11 @@ export const sendNotificationAfterAnEvent = async (input: NotificationInput) => 
       sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
 
 export const sendNotification = async (input: NotificationInput) => {
@@ -61,6 +77,11 @@ export const sendNotification = async (input: NotificationInput) => {
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
 
 export const sendNotificationBookingCancelled= async (input: NotificationInput) => {
@@ -74,6 +95,11 @@ export const sendNotificationBookingCancelled= async (input: NotificationInput) 
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 };
 
 
@@ -88,6 +114,11 @@ export const sendNotificationAfterAnEventSessionCompleted = async (input: Notifi
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 }
 
 
@@ -102,6 +133,11 @@ export const sendNotificationBookingConfirmed = async (input: NotificationInput)
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 }
 
 
@@ -116,4 +152,9 @@ export const therapistAccountApproved = async(input:NotificationInput)=>{
       sendAt: input.sendAt
     }
   });
+  const user = await prisma.user.findUnique({ where: { id: input.userId } });
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
+  await sendemail(user.email, input.message);
 }
