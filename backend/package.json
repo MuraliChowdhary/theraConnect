@@ -6,8 +6,8 @@
   "scripts": {
     "run": "concurrently \"node dist/index.js\" \"node dist/services/notification.worker.js\"",
     "build": "tsc -b",
-    "start": "concurrently \"node dist/index.js\" \"node dist/services/notification.worker.js\"",
-    "worker": "nodemon --watch src/services/notification.worker.ts --exec ts-node src/services/notification.worker.ts"
+    "start": "node dist/index.js",
+    "worker": "node dist/services/notification.worker.js"
   },
   "keywords": [],
   "author": "",
