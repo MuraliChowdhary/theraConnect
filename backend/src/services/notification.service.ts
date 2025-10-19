@@ -36,14 +36,16 @@ export const sendNotificationToTherapistSessionBooked = async (input: Notificati
 };
 
 export const sendNotificationAfterAnEvent = async (input: NotificationInput) => {
+  const { userId, message, sendAt } = input;
+  const type = NotificationType.REGISTRATION_SUCCESSFUL;
   await prisma.notification.create({
-    data: {
-      userId: input.userId,
-      message: input.message,
-      type: "REGISTRATION_SUCCESSFUL",
+    data:{
+      userId,
+      message,
+      type,
       channel: 'EMAIL',
       status: "PENDING",
-      sendAt: input.sendAt
+      sendAt
     }
   });
 };

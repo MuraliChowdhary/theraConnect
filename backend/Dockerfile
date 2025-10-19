@@ -5,7 +5,7 @@ FROM node:20
 WORKDIR /app
 
 # 3. Copy package files explicitly
-COPY ./package.json ./
+COPY ./package.json ./package-lock.json ./
 
 # 4. Install dependencies
 RUN npm install
