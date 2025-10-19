@@ -26,5 +26,4 @@ RUN npm run build
 EXPOSE 3000
 
 # 9. Start app
-# CMD ["npm", "start"]
-CMD ["npm", "run", "worker"]
+CMD ["npm", "start"]
