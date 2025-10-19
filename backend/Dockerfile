@@ -4,8 +4,8 @@ FROM node:20
 # 2. Set working directory
 WORKDIR /app
 
-# 3. Copy package files
-COPY package*.json ./
+# 3. Copy package files explicitly
+COPY ./package.json ./package-lock.json ./
 
 # 4. Install dependencies
 RUN npm install
@@ -16,12 +16,13 @@ COPY . .
 # 6. Generate Prisma client
 RUN npx prisma generate
 
-RUN npx prisma migrate deploy
+# Optional: only run migrate if DATABASE_URL is present
+# RUN npx prisma migrate deploy
 
 # 7. Build TypeScript to dist/
 RUN npm run build
 
-# 8. Expose port (Render will override with $PORT)
+# 8. Expose port
 EXPOSE 3000
 
 # 9. Start app
