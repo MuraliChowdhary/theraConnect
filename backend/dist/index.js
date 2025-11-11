@@ -30,23 +30,42 @@ const prisma_js_1 = __importDefault(require("./utils/prisma.js"));
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
     "https://thera-connectnew.vercel.app",
+    "https://therabee.in",
+    "https://www.therabee.in",
     "http://localhost:3001",
+    "http://localhost:3000",
+    "http://localhost:5173",
 ];
 // Global Middleware
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        // Allow non-browser clients (no Origin), and match against list or known patterns
+        const cleanedAllowed = allowedOrigins.filter(Boolean).map(o => o.replace(/\/+$/, ''));
+        const normalized = (origin || '').replace(/\/+$/, '');
+        const isAllowed = !origin ||
+            cleanedAllowed.includes(normalized) ||
+            normalized.endsWith('.vercel.app') || // Allow Vercel previews
+            normalized === 'https://therabee.in' ||
+            normalized === 'https://www.therabee.in';
+        if (isAllowed) {
             callback(null, true);
         }
         else {
+            // eslint-disable-next-line no-console
+            console.warn('[CORS] Blocked origin:', origin);
             callback(new Error("Not allowed by CORS"));
         }
     },
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 204,
 };
+// Handle preflight first
+app.options('/*', (0, cors_1.default)(corsOptions));
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 // Basic request logger (path, method, status)
@@ -59,6 +78,11 @@ app.use((req, res, next) => {
         // eslint-disable-next-line no-console
         console.log('[RES]', req.method, req.originalUrl, res.statusCode, ms + 'ms');
     });
+    next();
+});
+// Relax opener policy for OAuth popups (window.postMessage)
+app.use((_req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     next();
 });
 // API Routes
